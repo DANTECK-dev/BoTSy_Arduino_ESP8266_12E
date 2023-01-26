@@ -24,6 +24,7 @@ String HTML_Style_Index();
 String HTML_Style_Errors();
 String HTML_Error(int num_of_error);
 void Connecting_to_WiFi();
+void Start_AP_STA();
 void Start_AP(); //hotspot
 void Start_STA(); //client
 void headroot();
@@ -70,7 +71,7 @@ void setup()
   server.on("/", headroot);
   server.begin();*/
 
-  Start_STA();
+  Start_AP();
   
 }
 //=======================================================================
@@ -84,7 +85,9 @@ void loop()
 
 void Start_AP(){
   WiFi.mode(WIFI_AP);
-  WiFi.disconnect();
+  WiFi.
+  WiFi.enableAP(true);
+  WiFi.enableSTA(false);
   WiFi.begin(config.ap_ssid, config.ap_pass);
 
   String str = "\nAP SSID: ";
@@ -111,7 +114,36 @@ void Start_AP(){
 
 void Start_STA(){
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
+  WiFi.enableAP(false);
+  WiFi.enableSTA(true);
+  WiFi.begin(config.sta_ssid, config.sta_pass);
+
+  String str = "\nAP SSID: ";
+  str += config.ap_ssid;
+  str += "\nAP PASS: ";
+  str += config.ap_pass;
+  str += "\nSTA SSID: ";
+  str += config.sta_ssid;
+  str += "\nSTA PASS: ";
+  str += config.sta_pass;
+  Serial.println(str);
+
+  Serial.print("Connecting STA ");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  };
+  Serial.print("Connected ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", headroot);
+  server.begin();
+}
+
+void Start_AP_STA(){
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.enableAP(true);
+  WiFi.enableSTA(true);
   WiFi.begin(config.sta_ssid, config.sta_pass);
 
   String str = "\nAP SSID: ";
