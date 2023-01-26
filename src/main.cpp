@@ -27,6 +27,7 @@ void Connecting_to_WiFi();
 void Start_AP_STA();
 void Start_AP(); //hotspot
 void Start_STA(); //client
+void handle_Connect();
 void headroot();
 
 //=======================================================================
@@ -71,7 +72,7 @@ void setup()
   server.on("/", headroot);
   server.begin();*/
 
-  Start_AP();
+  Start_STA();
   
 }
 //=======================================================================
@@ -85,7 +86,6 @@ void loop()
 
 void Start_AP(){
   WiFi.mode(WIFI_AP);
-  WiFi.
   WiFi.enableAP(true);
   WiFi.enableSTA(false);
   WiFi.begin(config.ap_ssid, config.ap_pass);
@@ -166,6 +166,10 @@ void Start_AP_STA(){
 
   server.on("/", headroot);
   server.begin();
+}
+
+void handle_Connect() {
+  
 }
 
 void Connecting_to_WiFi(){
