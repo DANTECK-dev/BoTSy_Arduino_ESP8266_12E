@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266WiFi.h>
 
@@ -16,10 +17,13 @@ struct Config
 
 Config config;
 
+DNSServer dnsServer;
 ESP8266WebServer server(PORT);
 
+IPAddress APIP(172, 0, 0, 1);
+
 String HTML_Page_Index();
-String HTML_JS_Index(String SSIDs);
+String HTML_JS_Index(String SSIDs);+
 String HTML_Style_Index();
 String HTML_Style_Errors();
 String HTML_Error(int num_of_error);
@@ -72,7 +76,7 @@ void setup()
   server.on("/", headroot);
   server.begin();*/
 
-  Start_STA();
+  Start_AP();
   
 }
 //=======================================================================
@@ -81,14 +85,14 @@ void setup()
 void loop()
 {
   server.handleClient(); //обработка текущих входящих HTTP-запросов 
+  dnsServer.processNextRequest();
   delay(1);
 }
 
 void Start_AP(){
   WiFi.mode(WIFI_AP);
-  WiFi.enableAP(true);
-  WiFi.enableSTA(false);
-  WiFi.begin(config.ap_ssid, config.ap_pass);
+  WiFi.softAPConfig(APIP, APIP, IPAddress(255, 255, 255, 0));
+  WiFi.softAP(config.ap_ssid, config.ap_pass);
 
   String str = "\nAP SSID: ";
   str += config.ap_ssid;
@@ -99,51 +103,24 @@ void Start_AP(){
   str += "\nSTA PASS: ";
   str += config.sta_pass;
   Serial.println(str);
-
+/*
   Serial.print("Connecting AP");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   };
-  Serial.print("Connected ");
+  Serial.print("Connected ");*/
+  Serial.println(WiFi.softAPIP());
   Serial.println(WiFi.localIP());
 
   server.on("/", headroot);
+  dnsServer.start(53, "*", APIP); // DNS spoofing (Only for HTTP)
   server.begin();
 }
 
 void Start_STA(){
   WiFi.mode(WIFI_STA);
-  WiFi.enableAP(false);
-  WiFi.enableSTA(true);
-  WiFi.begin(config.sta_ssid, config.sta_pass);
-
-  String str = "\nAP SSID: ";
-  str += config.ap_ssid;
-  str += "\nAP PASS: ";
-  str += config.ap_pass;
-  str += "\nSTA SSID: ";
-  str += config.sta_ssid;
-  str += "\nSTA PASS: ";
-  str += config.sta_pass;
-  Serial.println(str);
-
-  Serial.print("Connecting STA ");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  };
-  Serial.print("Connected ");
-  Serial.println(WiFi.localIP());
-
-  server.on("/", headroot);
-  server.begin();
-}
-
-void Start_AP_STA(){
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.enableAP(true);
-  WiFi.enableSTA(true);
+  WiFi.disconnect();
   WiFi.begin(config.sta_ssid, config.sta_pass);
 
   String str = "\nAP SSID: ";
